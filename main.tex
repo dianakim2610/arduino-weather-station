@@ -1,0 +1,262 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{circuitikz}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\title{Development of a weather station based on arduino}
+\author{[Diana Kim], [Janysheva Anjenline] \\ Bishkek SPM 61 E. Yakir robotics club}
+\date{\ August 20, 2024}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper presents the development of an Arduino-based weather station capable of measuring temperature, humidity and air quality. The operating principles of the device, the components used, and the software are described.
+\end{abstract}
+
+\section{Introduction}
+Recently, Bishkek has been facing significant problems with air quality. Therefore, we constructed a device to monitor the weather transitions.        
+\section{Operating principle}
+The weather station consists of two main parts: transmitter and receiver. The transmitter is accumulated by the rechargeable battery. The transmitter's sensors collect data, which is read by the Arduino Uno and is transmitted to the receiver via radio module. The receiver, which is connected to the computer, receives the transmitted data and outputs them to the serial monitor for further analysis.  
+\section{Components and assembly}
+\subsection{Components used}
+\begin{itemize}
+    \item Arduino uno board 2x
+    \item Temperature and humidity sensor (DHT 22)
+    \item Gas sensor for air quality (MQ 135)
+    \item Radio module (NRF24LO1) 2X
+    \item Radio module with antenna (NRF24L01+PA+LNA) 2x
+    \item Adapter for NRF24LO1 2x
+    \item Ultra Lithium 9V rechargeable battery
+    \item Connectors and breadboard
+\end{itemize}
+
+\subsection{Scheme}
+The connection scheme is presented on pic \ref{fig:scheme} and on pic \ref{fig:scheme2}.
+\begin{figure}[h]
+    \centering
+    \begin{circuitikz}
+    % Arduino Uno block
+    \node at (0,0) (arduino) [draw, minimum width=4cm, minimum height=6.5cm, label=above:{Arduino Uno}] {};
+    \node at (-1,2.5) (pin5v) [draw, minimum size=0.5cm] {5V};
+    \node at (0.8,2.5) (pin33v) [draw, minimum size=0.5cm] {3.3V};
+    \node at (-1,1.5) (pingnd) [draw, minimum size=0.5cm] {GND};
+    \node at (0.8,1.5) (pin3) [draw, minimum size=0.5cm] {D3};
+    \node at (-1,0.5) (pin9) [draw, minimum size=0.5cm] {D9};
+    \node at (0.8,0.5) (pin10) [draw, minimum size=0.5cm] {D10};
+    \node at (-1,-0.5) (pin11) [draw, minimum size=0.5cm] {D11};
+    \node at (0.8,-0.5) (pin12) [draw, minimum size=0.5cm] {D12};
+    \node at (-1,-1.5) (pin13) [draw, minimum size=0.5cm] {D13};
+    \node at (0.8,-1.5) (pinA0) [draw, minimum size=0.5cm] {A0};
+
+    % DHT22 block
+    \node at (5, 0.1) (dht22) [draw, minimum width=2.5cm, minimum height=2.5cm, label=below:{DHT22}] {};
+    \node at (5,0.8) (dht22plus) [draw, minimum size=0.5cm] {+};
+    \node at (5,-0.6) (dht22out) [draw, minimum size=0.5cm] {OUT};
+    \node at (5,0.1) (dht22minus) [draw, minimum size=0.5cm] {-};
+
+    % MQ135 block
+    \node at (5, -3) (mq135) [draw, minimum width=2.5cm, minimum height=2.5cm, label=below:{MQ135}] {};
+    \node at (5,-2.3) (mq135vcc) [draw, minimum size=0.5cm] {VCC};
+    \node at (5,-3) (mq135gnd) [draw, minimum size=0.5cm] {GND};
+    \node at (5,-3.7) (mq135a0) [draw, minimum size=0.5cm] {A0};
+
+    % NRF24L01 Adapter block
+    \node at (5, 4) (nrf24) [draw, minimum width=3cm, minimum height=4.5cm, label=below:{NRF24L01 Adapter}] {};
+    \node at (5,3.4) (nrf24ce) [draw, minimum size=0.5cm] {CE};
+    \node at (5.7,4.1) (nrf24csn) [draw, minimum size=0.5cm] {CSN};
+    \node at (4.3,4.1) (nrf24sck) [draw, minimum size=0.5cm] {SCK};
+    \node at (5.7,4.8) (nrf24mo) [draw, minimum size=0.5cm] {MO};
+    \node at (4.3,4.8) (nrf24mi) [draw, minimum size=0.5cm] {MI};
+    \node at (5.7,5.5) (nrf24vcc) [draw, minimum size=0.5cm] {VCC};
+    \node at (4.3,5.5) (nrf24gnd) [draw, minimum size=0.5cm] {GND};
+
+    % Connections between Arduino and DHT22 (red lines)
+    \draw[->, red, thick] (pin5v) -- (dht22plus);
+    \draw[->, red, thick] (pingnd) -- (dht22minus);
+    \draw[->, red, thick] (pin3) -- (dht22out);
+
+    % Connections between Arduino and MQ135 (green lines)
+    \draw[->, green, thick] (pinA0) -- (mq135a0);
+    \draw[->, green, thick] (pingnd) -- (mq135gnd);
+    \draw[->, green, thick] (pin33v) -- (mq135vcc);
+
+    % Connections between Arduino and NRF24L01 Adapter (blue lines)
+    \draw[->, blue, thick] (pin9) -- (nrf24ce);
+    \draw[->, blue, thick] (pin10) -- (nrf24csn);
+    \draw[->, blue, thick] (pin11) -- (nrf24sck);
+    \draw[->, blue, thick] (pin12) -- (nrf24mo);
+    \draw[->, blue, thick] (pin13) -- (nrf24mi);
+    \draw[->, blue, thick] (pin5v) -- (nrf24vcc);
+    \draw[->, blue, thick] (pingnd) -- (nrf24gnd);
+
+    \end{circuitikz}
+    \caption{Weather Station Transmitter's wiring scheme}
+    \label{fig:scheme}
+\end{figure}
+\begin{figure}[h] 
+    \centering 
+    \begin{circuitikz} 
+
+    % Arduino Uno block 
+    \node at (0,0) (arduino) [draw, minimum width=4cm, minimum height=4cm, label=above:{Arduino Uno}] {}; 
+    \node at (-1,1.5) (pin5v) [draw, minimum size=0.5cm] {5V}; 
+    \node at (0.8,1.5) (pin13) [draw, minimum size=0.5cm] {D13}; 
+    \node at (-1,0.5) (pingnd) [draw, minimum size=0.5cm] {GND}; 
+    \node at (0.8,0.5) (pin3) [draw, minimum size=0.5cm] {D3}; 
+    \node at (-1,-0.5) (pin9) [draw, minimum size=0.5cm] {D9}; 
+    \node at (0.8,-0.5) (pin10) [draw, minimum size=0.5cm] {D10}; 
+    \node at (-1,-1.5) (pin11) [draw, minimum size=0.5cm] {D11}; 
+    \node at (0.8,-1.5) (pin12) [draw, minimum size=0.5cm] {D12};  
+   
+
+    % NRF24L01 Adapter block 
+    \node at (5, 0) (nrf24) [draw, minimum width=3cm, minimum height=3.5cm, label=above:{NRF24L01 Adapter}] {}; 
+    \node at (5,-1.1) (nrf24ce) [draw, minimum size=0.5cm] {CE}; 
+    \node at (5.7,-0.4) (nrf24csn) [draw, minimum size=0.5cm] {CSN}; 
+    \node at (4.3,-0.4) (nrf24sck) [draw, minimum size=0.5cm] {SCK}; 
+    \node at (5.7,0.3) (nrf24mo) [draw, minimum size=0.5cm] {MO}; 
+    \node at (4.3,0.3) (nrf24mi) [draw, minimum size=0.5cm] {MI}; 
+    \node at (5.7,1) (nrf24vcc) [draw, minimum size=0.5cm] {VCC}; 
+    \node at (4.3,1) (nrf24gnd) [draw, minimum size=0.5cm] {GND}; 
+
+    % Connections between Arduino and NRF24L01 Adapter (blue lines) 
+    \draw[->, blue, thick] (pin9) -- (nrf24ce); 
+    \draw[->, blue, thick] (pin10) -- (nrf24csn); 
+    \draw[->, blue, thick] (pin11) -- (nrf24sck);
+    \draw[->, blue, thick] (pin12) -- (nrf24mo); 
+    \draw[->, blue, thick] (pin13) -- (nrf24mi); 
+    \draw[->, blue, thick] (pin5v) -- (nrf24vcc); 
+    \draw[->, blue, thick] (pingnd) -- (nrf24gnd); 
+
+    \end{circuitikz} 
+    \caption{Weather Station Receiver's wiring scheme} 
+    \label{fig:scheme2} 
+\end{figure} 
+
+\section{Software}
+\subsection{Libraries used}
+\begin{itemize}
+    \item \texttt{MQ135.h} — to work with gas sensor
+    \item \texttt{DHT.h} — to work with temprature and humidity sensor
+    \item \texttt{SPI.h} — to work with radio module
+    \item \texttt{nRF24LO1.h} — to work with radio module
+    \item \texttt{RF24.h} — to work with radio module
+\end{itemize}
+
+\subsection{Program code}
+Transmitter's code
+
+\begin{lstlisting}[language=C++, caption=Weather meteostation transmitter's code]
+#include <MQ135.h>
+#include "DHT.h"
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+
+#define ANALOGPIN A0  
+#define DHT22_PIN 3
+
+MQ135 gasSensor = MQ135(ANALOGPIN); 
+DHT dht22(DHT22_PIN, DHT22);
+
+RF24 radio(9, 10); 
+
+byte address[][6] = {"1Node"};
+
+void setup() {
+  Serial.begin(9600);
+
+  radio.begin();
+  radio.setAutoAck(1);
+  radio.setRetries(0, 15);
+  radio.enableAckPayload();
+  radio.setPayloadSize(32);
+
+  radio.openWritingPipe(address[0]);
+  radio.setChannel(0x6e);
+  radio.setPALevel(RF24_PA_MAX);
+  radio.setDataRate(RF24_250KBPS); 
+
+  radio.powerUp();
+  radio.stopListening();
+
+  dht22.begin();
+  float rzero = gasSensor.getRZero();
+  Serial.print("Calibrated RZero: ");
+  Serial.println(rzero);
+}
+
+void loop() {
+  float ppm = gasSensor.getPPM();
+  float humi = dht22.readHumidity();
+  float tempC = dht22.readTemperature();
+  
+  
+  
+  float dataToSend[3] = {ppm, humi, tempC};
+  bool ok = radio.write(&dataToSend, sizeof(dataToSend));
+  if (ok) {
+    Serial.println("Data sent successfully");
+  } else {
+    Serial.println("Data send failed");
+  }
+
+  delay(1000);
+}
+\end{lstlisting}
+Receiver's code
+
+\begin{lstlisting}[language=C++, caption=Weather meteostation receiver's code]
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+
+RF24 radio(9, 10);
+//RF24 radio(9,53);
+
+byte address[][6] = {"1Node", "2Node", "3Node", "4Node", "5Node", "6Node"};
+
+void setup() {
+  Serial.begin(9600);
+  radio.begin();
+  radio.setAutoAck(1);
+  radio.setRetries(0, 15);
+  radio.enableAckPayload();
+  radio.setPayloadSize(32);
+
+  radio.openReadingPipe(1, address[0]);
+  radio.setChannel(0x6e); 
+  radio.setPALevel(RF24_PA_MAX);
+  radio.setDataRate(RF24_250KBPS);
+  radio.powerUp();
+  radio.startListening();
+}
+
+void loop() {
+  float receivedData[3];
+  while (radio.available()) {    
+    Serial.println("Radio available");  
+    radio.read(&receivedData, sizeof(receivedData)); 
+    Serial.print("Received PPM: ");
+    Serial.print(receivedData[0]);
+    Serial.print(" Humidity: ");
+    Serial.print(receivedData[1]);
+    Serial.print(" Temperature: ");
+    Serial.println(receivedData[2]);
+  }
+}
+\end{lstlisting}
+
+
+\section{Results and conclusions}
+Constructed weather station successfully works. It is planned to add other sensors, for example atmospheric pressure sensor.
+
+\end{document}
